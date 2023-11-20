@@ -14,8 +14,6 @@ parser.add_argument('--fused_offline', type=bool, default=False)
 args = parser.parse_args()
 
 
-# dataset = 'example_dataset'
-# test_id = '2023-05-16_15-28-02'
 dataset = args.model_name
 test_id = args.test_id
 fused_offline = args.fused_offline

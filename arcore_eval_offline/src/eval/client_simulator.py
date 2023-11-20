@@ -20,7 +20,6 @@ SERVER_PORT = 9999
 
 # Configuration
 model_name = 'nycu_hist_museum'
-focal_length = '  423.4869   422.5935'
 display = False
 
 # Path
@@ -68,7 +67,7 @@ def sendCurTrackConfThread():
 def socketThreadIn():
     global s, curTrackConf, sendingQueryImage, curScale, imageIdx, cur_arcore_sample, curImage, diplay_serverPose, display_image, serverPose, cur_fused_pose
     global checkPointsMap, latestAvailServerResultIdx, isFusedPoseReady, is_finished
-    global gt_poses, stats, logs, t0
+    global gt_poses, stats, logs, t0, focal_length
 
     def ssl_filter(ckptServerPose, oldWorldPose):
         global curTrackConf
@@ -206,7 +205,7 @@ def socketThreadIn():
 if __name__ == '__main__':
     global cur_arcore_sample, curImage, diplay_serverPose, display_image, serverPose, curScale, cur_fused_pose
     global checkPointsMap, latestAvailServerResultIdx, isFusedPoseReady, is_finished
-    global gt_poses, stats, logs, t0
+    global gt_poses, stats, logs, t0, focal_length
 
     curImage = None
     diplay_serverPose = False
@@ -227,6 +226,15 @@ if __name__ == '__main__':
         'filtered': {'time': [], 'dist': [], 'angle': []},
     }
     logs = []
+
+    # Focal length
+    focal_length = '         1          1'
+    log_lines = read_file_lines(f'{arcore_log_path}/{args.test_id}/log.txt')
+    for lines in log_lines:
+        tokens = parse_log_line(lines)
+        if tokens['log_type'] == 'Received':
+            focal_length = tokens['focal_length']
+            break
 
     # Socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

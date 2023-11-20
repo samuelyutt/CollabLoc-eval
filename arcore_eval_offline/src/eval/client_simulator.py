@@ -14,24 +14,29 @@ from pathlib import Path
 
 from utils import *
 
-# Connection
-SERVER_ADDRESS = '140.113.195.248'
-SERVER_PORT = 9999
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', type=str, required=True)
+parser.add_argument('--test_id', type=str, required=True)
+parser.add_argument('--out', type=Path, default='out')
+parser.add_argument('--server_address', type=str, default='140.113.195.248')
+parser.add_argument('--server_port', type=int, default=9999)
+parser.add_argument('--display', type=bool, default=False)
+args = parser.parse_args()
+
 
 # Configuration
-model_name = 'nycu_hist_museum'
-display = False
+SERVER_ADDRESS = args.server_address
+SERVER_PORT = args.server_port
+model_name = args.model_name
+display = args.display
+
 
 # Path
 model_path = '../../models'
 arcore_log_path = '../../arcore_log'
 gt_poses_path = '../../gt_poses'
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--test_id', type=str)
-parser.add_argument('--out', type=Path, default='out')
-args = parser.parse_args()
 
 def sendCurTrackConfThread():
     global s, curTrackConf, cur_arcore_sample, is_finished, cur_fused_pose

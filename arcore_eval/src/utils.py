@@ -157,12 +157,12 @@ def load_gt_poses(gtposes_fname):
 
 
 def parse_log_line(line):
-    # 0:Received|1:ckpt_image_idx|2:ckpt_c_pose|3:ckpt_c_abs_pose|4:ckpt_s_pose|5:ckpt_s_world_pose|6:cur_scale|7:ckpt_fused_world_pose|8:old_fused_world_pose|9:is_ckpt_avail|10:cur_track_conf
+    # 0:Received|1:ckpt_image_idx|2:ckpt_c_pose|3:ckpt_c_abs_pose|4:ckpt_s_pose|5:ckpt_s_world_pose|6:cur_scale|7:ckpt_fused_world_pose|8:old_fused_world_pose|9:is_ckpt_avail|10:cur_track_conf|11:focal_length
     # 0:ARPose|1:ckpt_image_idx|2:ckpt_c_pose|3:ckpt_c_abs_pose|4:ckpt_s_pose|5:ckpt_s_world_pose|6:cur_c_pose|7:cur_c_abs_pose|8:cur_fused_world_pose|9:cur_image_idx
     # 0:SampledPose|1:cur_image_idx|2:cur_image_idx_stamp|3:c_abs_pose|4:fused_world_pose|5:latest_avail_ckpt_idx
 
     fields = {
-        'Received': ['ckpt_image_idx', 'ckpt_c_pose', 'ckpt_c_abs_pose', 'ckpt_s_pose', 'ckpt_s_world_pose', 'cur_scale', 'ckpt_fused_world_pose', 'old_fused_world_pose', 'is_ckpt_avail', 'cur_track_conf'],
+        'Received': ['ckpt_image_idx', 'ckpt_c_pose', 'ckpt_c_abs_pose', 'ckpt_s_pose', 'ckpt_s_world_pose', 'cur_scale', 'ckpt_fused_world_pose', 'old_fused_world_pose', 'is_ckpt_avail', 'cur_track_conf', 'focal_length'],
         'ARPose': ['ckpt_image_idx', 'ckpt_c_pose', 'ckpt_c_abs_pose', 'ckpt_s_pose', 'ckpt_s_world_pose', 'cur_c_pose', 'cur_c_abs_pose', 'cur_fused_world_pose', 'cur_image_idx'],
         'SampledPose': ['cur_image_idx', 'cur_image_idx_stamp', 'c_abs_pose', 'fused_world_pose', 'latest_avail_ckpt_idx'],
     }

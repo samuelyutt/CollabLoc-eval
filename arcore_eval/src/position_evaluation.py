@@ -2,13 +2,22 @@ import matplotlib.style as mplstyle
 mplstyle.use('fast')
 
 import numpy as np
+import argparse
 from utils import *
 
-dataset = 'example_dataset'
-test_id = '2023-05-16_15-32-49'
 
-fused_offline = False
-display = True
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', type=str, required=True)
+parser.add_argument('--test_id', type=str, required=True)
+parser.add_argument('--display', type=bool, default=False)
+parser.add_argument('--fused_offline', type=bool, default=False)
+args = parser.parse_args()
+
+
+dataset = args.model_name
+test_id = args.test_id
+fused_offline = args.fused_offline
+display = args.display
 
 
 points3D_fname = f'../data/{dataset}/model/points3D.txt'

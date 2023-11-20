@@ -10,7 +10,6 @@ test_id = '2023-05-16_15-34-13'
 # Red, Purple,   Blue,      Orange,           Yellow
 dis_s, dis_c_on, dis_c_off, dis_sampled_c_on, dis_sampled_c_off = True, True, False, False, False
 dis_c_offset = 10
-eval_scale = np.asarray(0.5321026860470256)
 
 points3D_fname = f'../data/{dataset}/model/points3D.txt'
 gtposes_fname = f'../data/{dataset}/ar_log/{test_id}/gt_poses.txt'
@@ -20,6 +19,7 @@ log_fname = f'../data/{dataset}/ar_log/{test_id}/log.txt'
 
 def main():
     # Load checkpoint poses
+    eval_scale = np.asarray(1.0)
     scale = eval_scale
     cam_poses = []
     ckpts = CheckPoints()
@@ -40,11 +40,9 @@ def main():
             ckpt_c_pose = Pose(q, t)
 
             prev_c_pose, prev_s_pose, _, _ = ckpts.get(tokens['ckpt_image_idx'], accept_earlier=True)
-            if prev_s_pose is not None:
-                dist_s_poses = calc_dist(ckpt_s_pose.pos(), prev_s_pose.pos())
-                dist_c_poses = calc_dist(ckpt_c_pose.pos(), prev_c_pose.pos())
-                tmp_scale = dist_s_poses / dist_c_poses
-                scale = eval_scale
+            
+            scale = float(tokens['cur_scale'])
+
             ckpts.add(tokens['ckpt_image_idx'], ckpt_c_pose, ckpt_s_pose, scale, 1.0)
 
 

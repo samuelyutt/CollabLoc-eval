@@ -3,12 +3,22 @@ mplstyle.use('fast')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
+import argparse
+
 from utils import *
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', type=str, required=True)
+parser.add_argument('--tracks', type=str, required=True, nargs='+')
+args = parser.parse_args()
+
+
 # Configuration
-model_name = 'nycu_hist_museum'
-tracks = ['2023-00-00_00-00-00']
+model_name = args.model_name
+tracks = args.tracks
 colors = ['crimson', 'darkviolet', 'dodgerblue', 'c', 'darkslategray', 'olive', 'darkgoldenrod', 'coral', 'maroon', 'fuchsia', 'slateblue', 'g']
+
 
 # Path
 model_path = '../../models'

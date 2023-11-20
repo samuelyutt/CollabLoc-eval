@@ -7,7 +7,6 @@ from utils import *
 dataset = 'example_dataset'
 test_id = '2023-05-16_15-28-02'
 
-eval_scale = np.asarray(0.5321026860470256)
 fused_offline = False
 display = True
 
@@ -24,6 +23,7 @@ def main():
     gt_poses = load_gt_poses(gtposes_fname)
 
     # Load checkpoint poses
+    eval_scale = np.asarray(1.0)
     scale = 1
     scales = []
     cam_poses = []
@@ -57,14 +57,11 @@ def main():
 
             prev_c_pose, prev_s_pose, _, _ = ckpts.get(tokens['ckpt_image_idx'], accept_earlier=True)
             if fused_offline:
-                scale = 0.274081740442297
+                scale = float(tokens['cur_scale'])
             elif prev_s_pose is not None:
-                dist_s_poses = calc_dist(ckpt_s_pose.pos(), prev_s_pose.pos())
-                dist_c_poses = calc_dist(ckpt_c_pose.pos(), prev_c_pose.pos())
-                tmp_scale = dist_s_poses / dist_c_poses
-                # scales.append(tmp_scale)
-                # scale = np.mean(scales)
-                scale = 0.274081740442297
+                scale = float(tokens['cur_scale'])
+            eval_scale = np.asarray(scale)
+
             ckpts.add(tokens['ckpt_image_idx'], ckpt_c_pose, ckpt_s_pose, scale, 1.0)
 
     # Load client sample
@@ -89,7 +86,7 @@ def main():
                 # Sampled fused pose by offline calculation
                 q, t = parse_arpose(tokens['c_abs_pose'])
                 sampled_c_pose = Pose(q, t)
-                ckpt_c_pose, ckpt_s_pose, scale, confidence = ckpts.get(int(tokens[1]) - 1, accept_earlier=True)
+                ckpt_c_pose, ckpt_s_pose, scale, confidence = ckpts.get(int(tokens['cur_image_idx']) - 1, accept_earlier=True)
                 sampled_fused_pose = calc_fused_pose(sampled_c_pose, ckpt_c_pose, ckpt_s_pose, scale)
                 cam_poses.append((sampled_fused_pose, 'yellow'))
 
@@ -125,8 +122,10 @@ def main():
     print(dataset, test_id)
     print(f'Sampled client poses are fused {"offline" if fused_offline else "online"}')
     print('eval_scale', eval_scale)
+    print('dist (cm), angle (deg)')
     print('server images #', len(s_dists))
     print('client images #', len(c_dists))
+    
     print('dist server median', np.median(s_dists))
     print('dist server mean', np.mean(s_dists))
     print('dist server max', np.max(s_dists))

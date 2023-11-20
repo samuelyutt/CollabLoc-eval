@@ -2,14 +2,28 @@ import matplotlib.style as mplstyle
 mplstyle.use('fast')
 
 import numpy as np
+import argparse
 from utils import *
 
-dataset = 'example_dataset'
-test_id = '2023-05-16_15-34-13'
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', type=str, required=True)
+parser.add_argument('--test_id', type=str, required=True)
+parser.add_argument('--display_server_pose', type=bool, default=True)
+parser.add_argument('--display_online_client_pose', type=bool, default=True)
+parser.add_argument('--display_offline_client_pose', type=bool, default=False)
+parser.add_argument('--display_online_sampled_client_pose', type=bool, default=False)
+parser.add_argument('--display_offline_sampled_client_pose', type=bool, default=False)
+parser.add_argument('--client_pose_gap', type=int, default=10)
+args = parser.parse_args()
+
+
+dataset = args.model_name
+test_id = args.test_id
 
 # Red, Purple,   Blue,      Orange,           Yellow
-dis_s, dis_c_on, dis_c_off, dis_sampled_c_on, dis_sampled_c_off = True, True, False, False, False
-dis_c_offset = 10
+dis_s, dis_c_on, dis_c_off, dis_sampled_c_on, dis_sampled_c_off = args.display_server_pose, args.display_online_client_pose, args.display_offline_client_pose, args.display_online_sampled_client_pose, args.display_offline_sampled_client_pose
+dis_c_offset = args.client_pose_gap
 
 points3D_fname = f'../data/{dataset}/model/points3D.txt'
 gtposes_fname = f'../data/{dataset}/ar_log/{test_id}/gt_poses.txt'

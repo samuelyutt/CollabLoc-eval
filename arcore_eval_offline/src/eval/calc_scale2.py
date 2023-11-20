@@ -4,20 +4,28 @@ mplstyle.use('fast')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
+import argparse
 
 from utils import *
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', type=str, required=True)
+parser.add_argument('--display', type=bool, default=False)
+parser.add_argument('--pose1_arpose', type=str, required=True)
+parser.add_argument('--pose1_gtpose', type=str, required=True)
+parser.add_argument('--pose2_arpose', type=str, required=True)
+parser.add_argument('--pose2_gtpose', type=str, required=True)
+args = parser.parse_args()
+
+
 # Configuration
-model_name = 'nycu_hist_museum'
-display = True
+model_name = args.model_name
+display = args.display
+pose1_arpose_str = args.pose1_arpose
+pose1_gtpose_str = args.pose1_gtpose
+pose2_arpose_str = args.pose2_arpose
+pose2_gtpose_str = args.pose2_gtpose
 
-# Pose 1
-pose1_arpose_str = 't:[x:1.163, y:0.071, z:-0.925], q:[x:-0.95, y:0.01, z:-0.31, w:-0.06]'
-pose1_gtpose_str = '573 0.974966 0.0233523 -0.220845 -0.0111344 -0.714435 -0.521791 5.30177 50 client-2-180.jpg'
-
-# Pose 2
-pose2_arpose_str = 't:[x:21.528, y:0.004, z:-31.368], q:[x:-0.86, y:0.05, z:-0.50, w:-0.09]'
-pose2_gtpose_str = '772 0.906685 0.0602879 -0.414428 -0.0503773 1.53877 0.818292 -4.1871 248 client-44-24.jpg'
 
 # Path
 model_path = '../../models'

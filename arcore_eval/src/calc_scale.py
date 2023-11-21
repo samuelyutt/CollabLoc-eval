@@ -4,11 +4,21 @@ mplstyle.use('fast')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
+import argparse
 
 from utils import *
 
-dataset = 'example_dataset'
-dist_meter = 6.92
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', type=str, required=True)
+parser.add_argument('--dist_meter', type=float, required=True)
+parser.add_argument('--pose1_gtpose', type=str, required=True)
+parser.add_argument('--pose2_gtpose', type=str, required=True)
+args = parser.parse_args()
+
+
+dataset = args.model_name
+dist_meter = args.dist_meter
 
 points3D_fname = f'../data/{dataset}/model/points3D.txt'
 
@@ -16,8 +26,8 @@ points3D_fname = f'../data/{dataset}/model/points3D.txt'
 def main():
     # Load ground truth
     lines = [
-        '761 0.27163 -0.0438954 0.957457 0.0869847 -1.07724 -0.30125 1.18877 2 add_P_20230515_150621.jpg',
-        '760 0.618076 -0.0626705 0.781529 0.0571548 1.72471 -0.322014 1.63988 2 add_P_20230515_150601.jpg',
+        args.pose1_gtpose,
+        args.pose2_gtpose,
     ]
 
     poses = []

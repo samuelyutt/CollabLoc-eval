@@ -32,10 +32,18 @@ plt.draw()
 plt.pause(0.2)
 
 for track_idx, track in enumerate(tracks):
+    with open(f'{arcore_log_path}/{track}/sampled_imgs_log.txt', 'r') as f:
+        lines = f.readlines()
+
+    samples = []
+    for line in lines:
+        tokens = line.split('|')
+        samples.append(f'client-{tokens[2]}')
+
     gt_poses = load_gt_poses(f'{gt_poses_path}/{model_name}/{track}/gt_poses.txt')
 
     for image_name, pose in gt_poses.items():
-        if 'client' in image_name:
+        if image_name.split('.')[0] in samples:
             ax = display_pose(ax, pose, colors[track_idx], only_position=True)
 
     plt.draw()

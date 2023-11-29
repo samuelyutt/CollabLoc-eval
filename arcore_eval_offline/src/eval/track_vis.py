@@ -17,7 +17,11 @@ args = parser.parse_args()
 # Configuration
 model_name = args.model_name
 tracks = args.tracks
-colors = ['crimson', 'darkviolet', 'dodgerblue', 'c', 'darkslategray', 'olive', 'darkgoldenrod', 'coral', 'maroon', 'fuchsia', 'slateblue', 'g']
+colors = [
+    'crimson', 'darkviolet', 'dodgerblue', 'c', 'darkslategray', 'olive',
+    'darkgoldenrod', 'coral', 'maroon', 'fuchsia', 'slateblue', 'g', 
+    'darkgoldenrod', 'sienna', 'violet', 'palegreen', 'teal', 'slategray'
+]
 
 
 # Path
@@ -44,7 +48,7 @@ for track_idx, track in enumerate(tracks):
 
     for image_name, pose in gt_poses.items():
         if image_name.split('.')[0] in samples:
-            ax = display_pose(ax, pose, colors[track_idx], only_position=True)
+            ax = display_pose(ax, pose, colors[track_idx % len(colors)], only_position=True)
 
     plt.draw()
 

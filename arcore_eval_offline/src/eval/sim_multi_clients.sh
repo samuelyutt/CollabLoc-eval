@@ -1,7 +1,7 @@
 #!/bin/bash
 
 model_name=${1:-"help"}
-usage="usage: ./sim_multi_clients.sh model_name [path/to/sim_test_ids.txt] [n_clients]"
+usage="usage: ./sim_multi_clients.sh model_name [path/to/sim_test_ids.txt] [n_clients] [path/to/outputs]"
 
 if [[ "$model_name" =~ help|--help|-h ]]
 then

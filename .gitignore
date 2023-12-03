@@ -4,6 +4,7 @@ arcore_eval_offline/arcore_log/
 arcore_eval_offline/gt_poses/
 arcore_eval_offline/models/
 arcore_eval_offline/src/eval/out/
+arcore_eval_offline/src/eval/sim_test_ids.txt
 
 
 # macOS file system files

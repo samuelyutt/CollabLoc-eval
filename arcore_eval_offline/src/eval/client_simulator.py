@@ -21,7 +21,7 @@ parser.add_argument('--test_id', type=str, required=True)
 parser.add_argument('--out', type=Path, default='out')
 parser.add_argument('--server_address', type=str, default='140.113.195.248')
 parser.add_argument('--server_port', type=int, default=9999)
-parser.add_argument('--display', type=bool, default=False)
+parser.add_argument('--display', action='store_true')
 args = parser.parse_args()
 
 

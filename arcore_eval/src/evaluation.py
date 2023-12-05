@@ -9,7 +9,7 @@ from utils import *
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str, required=True)
 parser.add_argument('--test_id', type=str, required=True)
-parser.add_argument('--display', type=bool, default=False)
+parser.add_argument('--display', action='store_true')
 parser.add_argument('--fused_offline', type=bool, default=False)
 args = parser.parse_args()
 

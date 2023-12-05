@@ -10,7 +10,7 @@ from utils import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str, required=True)
-parser.add_argument('--display', type=bool, default=False)
+parser.add_argument('--display', action='store_true')
 parser.add_argument('--pose1_arpose', type=str, required=True)
 parser.add_argument('--pose1_gtpose', type=str, required=True)
 parser.add_argument('--pose2_arpose', type=str, required=True)

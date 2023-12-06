@@ -143,8 +143,8 @@ def main():
         samples = read_sampled_imgs_log(f'{arcore_log_path}/{args.test_id}/sampled_imgs_log.txt')
         for sample in samples:
             if sample['cur_image_idx_stamp'] in onsite_poses:
-                client_pose = pose_from_arpose_str(sample['c_abs_pose']) # only for pre-testing, must be fused_world_pose
-                # client_pose = pose_from_arpose_str(sample['fused_world_pose'])
+                # client_pose = pose_from_arpose_str(sample['c_abs_pose']) # only for pre-testing, must be fused_world_pose
+                client_pose = pose_from_arpose_str(sample['fused_world_pose'])
                 client_poses[sample['cur_image_idx_stamp']] = client_pose
                 if args.display:
                     ax = display_pose(ax, client_pose, 'blue', only_position=args.display_only_position)

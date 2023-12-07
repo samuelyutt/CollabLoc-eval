@@ -329,13 +329,13 @@ def display_pose(cam_poses, pc=None, only_pos=False, axis_on=False):
             y = [p1[1], p2[1], p3[1], p4[1]]
             z = [p1[2], p2[2], p3[2], p4[2]]
             vertices = [list(zip(x, y, z))]
-            poly = Poly3DCollection(vertices, alpha=0.5, color=c)
+            poly = Poly3DCollection(vertices, alpha=0.3, color=c)
             ax.add_collection3d(poly)
 
             ax.plot([t[0], p1[0]], [t[1], p1[1]], [t[2], p1[2]], marker='.', c=c, markersize=0.5, lw=0.5)
             ax.plot([t[0], p2[0]], [t[1], p2[1]], [t[2], p2[2]], marker='.', c=c, markersize=0.5, lw=0.5)
-            ax.plot([t[0], p3[0]], [t[1], p3[1]], [t[2], p3[2]], marker='.', c=c, markersize=0.5, lw=0.5)
-            ax.plot([t[0], p4[0]], [t[1], p4[1]], [t[2], p4[2]], marker='o', c=c, markersize=2, lw=0.5)
+            ax.plot([t[0], p3[0]], [t[1], p3[1]], [t[2], p3[2]], marker='o', c=c, markersize=1, lw=0.5)
+            ax.plot([t[0], p4[0]], [t[1], p4[1]], [t[2], p4[2]], marker='.', c=c, markersize=0.5, lw=0.5)
 
     plt.draw() 
 

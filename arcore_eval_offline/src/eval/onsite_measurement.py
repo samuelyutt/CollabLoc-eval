@@ -103,8 +103,21 @@ def example():
 def main():
     # Visualize
     if args.display:
-        fig, ax = initial_plot()
+        # fig, ax = initial_plot(f'{model_path}/{args.model_name}/points3D.txt')
+        # fig, ax = initial_plot()
+        ####
+        fig = plt.figure(dpi=100)
+        ax = fig.add_subplot(projection='3d')
+        # ax.axis('off')
+        ax.set_xlim([-10, 10])
+        ax.set_ylim([-10, 10])
+        ax.set_zlim([-10, 10])
+
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
         ax.view_init(elev=-5, azim=-90, roll=15)
+        ####
         plt.draw()
         plt.pause(0.2)
 
@@ -119,7 +132,7 @@ def main():
         onsite_pose = Pose(q, t)
         onsite_poses[tokens[7].replace('client-', '').split('.')[0]] = onsite_pose
         if args.display:
-            ax = display_pose(ax, onsite_pose, 'green', only_position=args.display_only_position)
+            ax = display_pose(ax, onsite_pose, 'green', only_position=args.display_only_position, pose_size=0.1)
 
     # Read client fused poses
     client_poses = {}
@@ -130,24 +143,27 @@ def main():
         for line in lines[3:]:
             if 'client' == line[:6]:
                 tokens = line.split('|')
-                tok = tokens[1].split()
-                q = [tok[0], tok[1], tok[2], tok[3]]
-                t = [tok[4], tok[5], tok[6]]
-                client_pose = Pose(q, t)
-                client_poses[tokens[5].replace('client-', '').split('.')[0]] = client_pose
-                if args.display:
-                    ax = display_pose(ax, client_pose, 'blue', only_position=args.display_only_position)
+                key = tokens[5].replace('client-', '').split('.')[0]
+                if key in onsite_poses:
+                    tok = tokens[1].split()
+                    q = [tok[0], tok[1], tok[2], tok[3]]
+                    t = [tok[4], tok[5], tok[6]]
+                    client_pose = Pose(q, t)
+                    client_poses[key] = client_pose
+                    # if args.display:
+                    #     ax = display_pose(ax, client_pose, 'blue', only_position=args.display_only_position, pose_size=0.1)
         
     else:
         # Read client fused poses from online logs
         samples = read_sampled_imgs_log(f'{arcore_log_path}/{args.test_id}/sampled_imgs_log.txt')
         for sample in samples:
-            if sample['cur_image_idx_stamp'] in onsite_poses:
+            key = sample['cur_image_idx_stamp']
+            if key in onsite_poses:
                 # client_pose = pose_from_arpose_str(sample['c_abs_pose']) # only for pre-testing, must be fused_world_pose
                 client_pose = pose_from_arpose_str(sample['fused_world_pose'])
-                client_poses[sample['cur_image_idx_stamp']] = client_pose
-                if args.display:
-                    ax = display_pose(ax, client_pose, 'blue', only_position=args.display_only_position)
+                client_poses[key] = client_pose
+                # if args.display:
+                #     ax = display_pose(ax, client_pose, 'blue', only_position=args.display_only_position, pose_size=0.1)
 
     # Remove redundant poses because they do not appear in samples
     redundant_keys = []
@@ -166,29 +182,49 @@ def main():
     # a1*cR + t = a2
     c, R, t = umeyama(a1, a2)
 
+    ####
+    if args.display:
+        f = open(f'{model_path}/{args.model_name}/points3D.txt', 'r')
+        lines = f.readlines()
+        pc = []
+        for i, line in enumerate(lines):
+            if line[0] == '#':
+                continue
+            p = Point(line)
+            pc.append(p.pos())
+        pc = np.array(pc)
+
+        pc = pc.dot(c * R) + t
+
+        ax.plot(pc[:, 0], pc[:, 1], pc[:, 2], marker='.', c='gray', markersize=0.3, lw=0)
+    ####
+
     dists, angles = [], []
     for key, client_pose in client_poses.items():
         # Transformation
-        tsfm_client_pose_q = quaternion.from_rotation_matrix(np.matmul(
-            R,
-            quaternion.as_rotation_matrix(client_pose.q()),
-        ))
+        # tsfm_client_pose_q = quaternion.from_rotation_matrix(np.matmul(
+        #     R,
+        #     quaternion.as_rotation_matrix(client_pose.q()),
+        # ))
+        # tsfm_client_pose_q = quaternion.from_rotation_matrix(R) * client_pose.q()
+        tsfm_client_pose_q = quaternion.from_rotation_matrix(R).inverse() * client_pose.q()
         tsfm_client_pose_t = np.matmul(
             client_pose.t(),
             R,
         ) * c + t
         tsfm_client_pose = Pose(quaternion.as_float_array(tsfm_client_pose_q), tsfm_client_pose_t)
-        
+
         # Error calculation
         onsite_pose = onsite_poses[key]
         dist = onsite_pose.dist_to(tsfm_client_pose)
         angle = onsite_pose.angle_to(tsfm_client_pose)
         dists.append(dist)
         angles.append(angle)
+        print(key, dist, angle)
 
         # Display
         if args.display:
-            ax = display_pose(ax, tsfm_client_pose, 'purple', only_position=args.display_only_position)
+            ax = display_pose(ax, tsfm_client_pose, 'purple', only_position=args.display_only_position, pose_size=0.1)
 
     # Statistics
     dists = np.array(dists)

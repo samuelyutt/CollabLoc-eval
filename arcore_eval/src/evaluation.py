@@ -8,104 +8,108 @@ from utils import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str, required=True)
-parser.add_argument('--test_id', type=str, required=True)
+parser.add_argument('--test_id', type=str, required=True, nargs='+')
 parser.add_argument('--display', action='store_true')
-parser.add_argument('--fused_offline', type=bool, default=False)
+parser.add_argument('--display_only_position', action='store_true')
+parser.add_argument('--fused_offline', action='store_true')
 args = parser.parse_args()
 
 
 dataset = args.model_name
-test_id = args.test_id
+test_ids = args.test_id
 fused_offline = args.fused_offline
 display = args.display
 
 
 points3D_fname = f'../data/{dataset}/model/points3D.txt'
-gtposes_fname = f'../data/{dataset}/ar_log/{test_id}/gt_poses.txt'
-sampledimgs_fname = f'../data/{dataset}/ar_log/{test_id}/sampled_imgs_log.txt'
-log_fname = f'../data/{dataset}/ar_log/{test_id}/log.txt'
 
 
 def main():
-    # Load ground truth
     c_idxs, c_dists, c_angs, s_idxs, s_dists, s_angs = [], [], [], [], [], []
-    gt_poses = load_gt_poses(gtposes_fname)
+    
+    for test_id in test_ids:
+        gtposes_fname = f'../data/{dataset}/ar_log/{test_id}/gt_poses.txt'
+        sampledimgs_fname = f'../data/{dataset}/ar_log/{test_id}/sampled_imgs_log.txt'
+        log_fname = f'../data/{dataset}/ar_log/{test_id}/log.txt'
+        
+        # Load ground truth
+        gt_poses = load_gt_poses(gtposes_fname)
 
-    # Load checkpoint poses
-    eval_scale = np.asarray(1.0)
-    scale = 1
-    scales = []
-    cam_poses = []
-    ckpts = CheckPoints()
-    log_lines = read_file_lines(log_fname)
+        # Load checkpoint poses
+        eval_scale = np.asarray(1.0)
+        scale = 1
+        scales = []
+        cam_poses = []
+        ckpts = CheckPoints()
+        log_lines = read_file_lines(log_fname)
 
-    for line_idx, line in enumerate(log_lines):
-        # Tokens format
-        # 0:Received|1:ckpt_image_idx|2:ckpt_c_pose|3:ckpt_c_abs_pose|4:ckpt_s_pose|5:ckpt_s_world_pose|6:cur_scale|7:ckpt_fused_world_pose|8:old_fused_world_pose
-        # 0:ARPose|1:ckpt_image_idx|2:ckpt_c_pose|3:ckpt_c_abs_pose|4:ckpt_s_pose|5:ckpt_s_world_pose|6:cur_c_pose|7:cur_c_abs_pose|8:cur_fused_world_pose|9:cur_image_idx
-        tokens = parse_log_line(line)
-        if len(tokens) < 1:
-            continue
-        if skip(test_id, tokens):
-            continue
+        for line_idx, line in enumerate(log_lines):
+            # Tokens format
+            # 0:Received|1:ckpt_image_idx|2:ckpt_c_pose|3:ckpt_c_abs_pose|4:ckpt_s_pose|5:ckpt_s_world_pose|6:cur_scale|7:ckpt_fused_world_pose|8:old_fused_world_pose
+            # 0:ARPose|1:ckpt_image_idx|2:ckpt_c_pose|3:ckpt_c_abs_pose|4:ckpt_s_pose|5:ckpt_s_world_pose|6:cur_c_pose|7:cur_c_abs_pose|8:cur_fused_world_pose|9:cur_image_idx
+            tokens = parse_log_line(line)
+            if len(tokens) < 1:
+                continue
+            if skip(test_id, tokens):
+                continue
 
-        if tokens['log_type'] == 'Received':
-            q, t = parse_arpose(tokens['ckpt_s_world_pose'])
-            ckpt_s_pose = Pose(q, t)
-            cam_poses.append((ckpt_s_pose, 'red'))
-            
-            # Evaluation on distance and angle
-            dist, ang = gt_poses.compare(f'server-{tokens["ckpt_image_idx"]}', ckpt_s_pose)
-            if dist is not None and ang is not None:
-                s_dists.append(dist)
-                s_angs.append(ang)
-                s_idxs.append(int(tokens['ckpt_image_idx']) * 30)
+            if tokens['log_type'] == 'Received':
+                q, t = parse_arpose(tokens['ckpt_s_world_pose'])
+                ckpt_s_pose = Pose(q, t)
+                cam_poses.append((ckpt_s_pose, 'red'))
+                
+                # Evaluation on distance and angle
+                dist, ang = gt_poses.compare(f'server-{tokens["ckpt_image_idx"]}', ckpt_s_pose)
+                if dist is not None and ang is not None:
+                    s_dists.append(dist)
+                    s_angs.append(ang)
+                    s_idxs.append(int(tokens['ckpt_image_idx']) * 30)
 
-            q, t = parse_arpose(tokens['ckpt_c_abs_pose'])
-            ckpt_c_pose = Pose(q, t)
+                q, t = parse_arpose(tokens['ckpt_c_abs_pose'])
+                ckpt_c_pose = Pose(q, t)
 
-            prev_c_pose, prev_s_pose, _, _ = ckpts.get(tokens['ckpt_image_idx'], accept_earlier=True)
-            if fused_offline:
-                scale = float(tokens['cur_scale'])
-            elif prev_s_pose is not None:
-                scale = float(tokens['cur_scale'])
-            eval_scale = np.asarray(scale)
+                prev_c_pose, prev_s_pose, _, _ = ckpts.get(tokens['ckpt_image_idx'], accept_earlier=True)
+                if fused_offline:
+                    scale = float(tokens['cur_scale'])
+                elif prev_s_pose is not None:
+                    scale = float(tokens['cur_scale'])
+                eval_scale = np.asarray(scale)
 
-            ckpts.add(tokens['ckpt_image_idx'], ckpt_c_pose, ckpt_s_pose, scale, 1.0)
+                ckpts.add(tokens['ckpt_image_idx'], ckpt_c_pose, ckpt_s_pose, scale, 1.0)
 
-    # Load client sample
-    sampledimgs_lines = read_file_lines(sampledimgs_fname)
+        # Load client sample
+        sampledimgs_lines = read_file_lines(sampledimgs_fname)
 
-    for line_idx, line in enumerate(sampledimgs_lines):
-        # Tokens format
-        # 0:SampledPose|1:cur_image_idx|2:cur_image_idx_stamp|3:c_abs_pose|4:fused_world_pose|5:latest_avail_ckpt_idx
-        tokens = parse_log_line(line)
-        if len(tokens) < 1:
-            continue
-        if skip(test_id, tokens):
-            continue
+        for line_idx, line in enumerate(sampledimgs_lines):
+            # Tokens format
+            # 0:SampledPose|1:cur_image_idx|2:cur_image_idx_stamp|3:c_abs_pose|4:fused_world_pose|5:latest_avail_ckpt_idx
+            tokens = parse_log_line(line)
+            if len(tokens) < 1:
+                continue
+            if skip(test_id, tokens):
+                continue
 
-        if tokens['log_type'] == 'SampledPose':
-            if not fused_offline:
-                # Sampled fused pose by client
-                q, t = parse_arpose(tokens['fused_world_pose'])
-                sampled_fused_pose = Pose(q, t)
-                cam_poses.append((sampled_fused_pose, 'orange'))
-            else:
-                # Sampled fused pose by offline calculation
-                q, t = parse_arpose(tokens['c_abs_pose'])
-                sampled_c_pose = Pose(q, t)
-                ckpt_c_pose, ckpt_s_pose, scale, confidence = ckpts.get(int(tokens['cur_image_idx']) - 1, accept_earlier=True)
-                sampled_fused_pose = calc_fused_pose(sampled_c_pose, ckpt_c_pose, ckpt_s_pose, scale)
-                cam_poses.append((sampled_fused_pose, 'yellow'))
+            if tokens['log_type'] == 'SampledPose':
+                if not fused_offline:
+                    # Sampled fused pose by client
+                    q, t = parse_arpose(tokens['fused_world_pose'])
+                    sampled_fused_pose = Pose(q, t)
+                    cam_poses.append((sampled_fused_pose, 'orange'))
+                else:
+                    # Sampled fused pose by offline calculation
+                    q, t = parse_arpose(tokens['c_abs_pose'])
+                    sampled_c_pose = Pose(q, t)
+                    ckpt_c_pose, ckpt_s_pose, scale, confidence = ckpts.get(int(tokens['cur_image_idx']) - 1, accept_earlier=True)
+                    sampled_fused_pose = calc_fused_pose(sampled_c_pose, ckpt_c_pose, ckpt_s_pose, scale)
+                    cam_poses.append((sampled_fused_pose, 'yellow'))
 
-            # Evaluation on distance and angle
-            dist, ang = gt_poses.compare(f'client-{tokens["cur_image_idx_stamp"]}', sampled_fused_pose)
-            if dist is not None and ang is not None:
-                c_dists.append(dist)
-                c_angs.append(ang)
-                tmp_tok = tokens['cur_image_idx_stamp'].split('-')
-                c_idxs.append(int(tmp_tok[0]) * 30 + int(tmp_tok[1]))
+                # Evaluation on distance and angle
+                dist, ang = gt_poses.compare(f'client-{tokens["cur_image_idx_stamp"]}', sampled_fused_pose)
+                if dist is not None and ang is not None:
+                    c_dists.append(dist)
+                    c_angs.append(ang)
+                    tmp_tok = tokens['cur_image_idx_stamp'].split('-')
+                    c_idxs.append(int(tmp_tok[0]) * 30 + int(tmp_tok[1]))
 
     s_dists = s_dists / eval_scale * 100
     c_dists = c_dists / eval_scale * 100
@@ -128,7 +132,7 @@ def main():
     # )
 
     print('Evaluation Report')
-    print(dataset, test_id)
+    print(dataset, test_ids)
     print(f'Sampled client poses are fused {"offline" if fused_offline else "online"}')
     print('eval_scale', eval_scale)
     print('dist (cm), angle (deg)')
@@ -154,7 +158,7 @@ def main():
     print('angle client min', np.min(c_angs))
 
     if display:
-        display_pose(cam_poses, load_point_cloud(points3D_fname))
+        display_pose(cam_poses, load_point_cloud(points3D_fname), only_pos=args.display_only_position)
 
 
 if __name__ == '__main__':

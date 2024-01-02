@@ -22,12 +22,17 @@ display = args.display
 
 
 points3D_fname = f'../data/{dataset}/model/points3D.txt'
-
+colors = [
+    'crimson', 'darkviolet', 'dodgerblue', 'c', 'darkslategray', 'olive',
+    'darkgoldenrod', 'coral', 'maroon', 'fuchsia', 'slateblue', 'g', 
+    'darkgoldenrod', 'sienna', 'violet', 'palegreen', 'teal', 'slategray'
+]
 
 def main():
     c_idxs, c_dists, c_angs, s_idxs, s_dists, s_angs = [], [], [], [], [], []
+    cam_poses = []
     
-    for test_id in test_ids:
+    for track_idx, test_id in enumerate(test_ids):
         gtposes_fname = f'../data/{dataset}/ar_log/{test_id}/gt_poses.txt'
         sampledimgs_fname = f'../data/{dataset}/ar_log/{test_id}/sampled_imgs_log.txt'
         log_fname = f'../data/{dataset}/ar_log/{test_id}/log.txt'
@@ -39,7 +44,6 @@ def main():
         eval_scale = np.asarray(1.0)
         scale = 1
         scales = []
-        cam_poses = []
         ckpts = CheckPoints()
         log_lines = read_file_lines(log_fname)
 
@@ -94,14 +98,16 @@ def main():
                     # Sampled fused pose by client
                     q, t = parse_arpose(tokens['fused_world_pose'])
                     sampled_fused_pose = Pose(q, t)
-                    cam_poses.append((sampled_fused_pose, 'orange'))
+                    # cam_poses.append((sampled_fused_pose, 'orange'))
+                    cam_poses.append((sampled_fused_pose, colors[track_idx % len(colors)]))
                 else:
                     # Sampled fused pose by offline calculation
                     q, t = parse_arpose(tokens['c_abs_pose'])
                     sampled_c_pose = Pose(q, t)
                     ckpt_c_pose, ckpt_s_pose, scale, confidence = ckpts.get(int(tokens['cur_image_idx']) - 1, accept_earlier=True)
                     sampled_fused_pose = calc_fused_pose(sampled_c_pose, ckpt_c_pose, ckpt_s_pose, scale)
-                    cam_poses.append((sampled_fused_pose, 'yellow'))
+                    # cam_poses.append((sampled_fused_pose, 'yellow'))
+                    cam_poses.append((sampled_fused_pose, colors[track_idx % len(colors)]))
 
                 # Evaluation on distance and angle
                 dist, ang = gt_poses.compare(f'client-{tokens["cur_image_idx_stamp"]}', sampled_fused_pose)

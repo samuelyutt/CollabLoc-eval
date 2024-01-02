@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 import argparse
+from pathlib import Path
 
 from utils import *
 
@@ -12,6 +13,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str, required=True)
 parser.add_argument('--tracks', type=str, required=True, nargs='+')
 parser.add_argument('--src', type=str, default='gt')
+parser.add_argument('--offline_log_path', type=Path)
 args = parser.parse_args()
 
 
@@ -61,6 +63,21 @@ for track_idx, track in enumerate(tracks):
                 continue
             if tokens['log_type'] == 'SampledPose':
                 pose = pose_from_arpose_str(tokens['fused_world_pose'])
+                ax = display_pose(ax, pose, colors[track_idx % len(colors)], only_position=True)
+    
+    elif 'offline_logs' in args.src:
+        # Display poses from sampled_imgs_log.txt (offline poses)
+        assert args.offline_log_path is not None, 'offline_log_path should be given'
+
+        with open(args.offline_log_path / f'{track}_logs.txt', 'r') as f:
+            lines = f.readlines()
+        for line in lines[3:]:
+            if 'client' == line[:6]:
+                tokens = line.split('|')
+                tok = tokens[1].split()
+                q = [tok[0], tok[1], tok[2], tok[3]]
+                t = [tok[4], tok[5], tok[6]]
+                pose = Pose(q, t)
                 ax = display_pose(ax, pose, colors[track_idx % len(colors)], only_position=True)
 
     else:

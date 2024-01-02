@@ -11,6 +11,7 @@ from utils import *
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str, required=True)
 parser.add_argument('--tracks', type=str, required=True, nargs='+')
+parser.add_argument('--src', type=str, default='gt')
 args = parser.parse_args()
 
 
@@ -36,19 +37,34 @@ plt.draw()
 plt.pause(0.2)
 
 for track_idx, track in enumerate(tracks):
-    with open(f'{arcore_log_path}/{track}/sampled_imgs_log.txt', 'r') as f:
-        lines = f.readlines()
+    if args.src == 'gt':
+        # Display poses from gt_poses.txt (ground truth poses)
+        with open(f'{arcore_log_path}/{track}/sampled_imgs_log.txt', 'r') as f:
+            lines = f.readlines()
 
-    samples = []
-    for line in lines:
-        tokens = line.split('|')
-        samples.append(f'client-{tokens[2]}')
+        samples = []
+        for line in lines:
+            tokens = line.split('|')
+            samples.append(f'client-{tokens[2]}')
 
-    gt_poses = load_gt_poses(f'{gt_poses_path}/{model_name}/{track}/gt_poses.txt')
+        gt_poses = load_gt_poses(f'{gt_poses_path}/{model_name}/{track}/gt_poses.txt')
 
-    for image_name, pose in gt_poses.items():
-        if image_name.split('.')[0] in samples:
-            ax = display_pose(ax, pose, colors[track_idx % len(colors)], only_position=True)
+        for image_name, pose in gt_poses.items():
+            if image_name.split('.')[0] in samples:
+                ax = display_pose(ax, pose, colors[track_idx % len(colors)], only_position=True)
+
+    elif args.src == 'sampled_imgs_log':
+        # Display poses from sampled_imgs_log.txt (online poses)
+        for line in read_file_lines(f'{arcore_log_path}/{track}/sampled_imgs_log.txt'):
+            tokens = parse_log_line(line)
+            if len(tokens) < 1:
+                continue
+            if tokens['log_type'] == 'SampledPose':
+                pose = pose_from_arpose_str(tokens['fused_world_pose'])
+                ax = display_pose(ax, pose, colors[track_idx % len(colors)], only_position=True)
+
+    else:
+        print('Unrecognized type')
 
     plt.draw()
 

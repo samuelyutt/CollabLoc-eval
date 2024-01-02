@@ -117,8 +117,11 @@ def main():
                     tmp_tok = tokens['cur_image_idx_stamp'].split('-')
                     c_idxs.append(int(tmp_tok[0]) * 30 + int(tmp_tok[1]))
 
-    s_dists = s_dists / eval_scale * 100
-    c_dists = c_dists / eval_scale * 100
+    s_dists = np.array(s_dists) / eval_scale * 100
+    c_dists = np.array(c_dists) / eval_scale * 100
+    s_angs = np.array(s_angs)
+    c_angs = np.array(c_angs)
+
 
     print(dataset, test_id)
     print(f'Sampled client poses are fused {"offline" if fused_offline else "online"}')
@@ -154,6 +157,13 @@ def main():
     print('dist client max', np.max(c_dists))
     print('dist client min', np.min(c_dists))
 
+    c_dists_2std = c_dists[c_dists < np.mean(c_dists) + 2 * np.std(c_dists)]
+    print('dist client std', np.std(c_dists))
+    print('dist client median (2 std)', np.median(c_dists_2std))
+    print('dist client mean (2 std)', np.mean(c_dists_2std))
+    print('dist client max (2 std)', np.max(c_dists_2std))
+    print('dist client min (2 std)', np.min(c_dists_2std))
+
     print('angle server median', np.median(s_angs))
     print('angle server mean', np.mean(s_angs))
     print('angle server max', np.max(s_angs))
@@ -162,6 +172,13 @@ def main():
     print('angle client mean', np.mean(c_angs))
     print('angle client max', np.max(c_angs))
     print('angle client min', np.min(c_angs))
+
+    c_angs_2std = c_angs[c_dists < np.mean(c_dists) + 2 * np.std(c_dists)]
+    # print('angle client std', np.std(c_angs))
+    print('angle client median (2 std)', np.median(c_angs_2std))
+    print('angle client mean (2 std)', np.mean(c_angs_2std))
+    print('angle client max (2 std)', np.max(c_angs_2std))
+    print('angle client min (2 std)', np.min(c_angs_2std))
 
     if display:
         display_pose(cam_poses, load_point_cloud(points3D_fname), only_pos=args.display_only_position)

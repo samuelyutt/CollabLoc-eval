@@ -66,7 +66,7 @@ for track_idx, track in enumerate(tracks):
                 ax = display_pose(ax, pose, colors[track_idx % len(colors)], only_position=True)
     
     elif 'offline_logs' in args.src:
-        # Display poses from sampled_imgs_log.txt (offline poses)
+        # Display poses from {track}_logs.txt (offline poses)
         assert args.offline_log_path is not None, 'offline_log_path should be given'
 
         with open(args.offline_log_path / f'{track}_logs.txt', 'r') as f:

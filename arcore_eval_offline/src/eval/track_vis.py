@@ -65,7 +65,7 @@ for track_idx, track in enumerate(tracks):
                 pose = pose_from_arpose_str(tokens['fused_world_pose'])
                 ax = display_pose(ax, pose, colors[track_idx % len(colors)], only_position=True)
     
-    elif 'offline_logs' in args.src:
+    elif args.src == 'offline_logs':
         # Display poses from {track}_logs.txt (offline poses)
         assert args.offline_log_path is not None, 'offline_log_path should be given'
 
